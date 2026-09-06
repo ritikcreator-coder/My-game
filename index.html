@@ -63,5 +63,15 @@ Error generating stack: `+o.message+`
 <script>
 (function(){ window.addEventListener("unhandledrejection", function(e){ console.error("Unhandled promise rejection:", e.reason); }); window.addEventListener("error", function(e){ console.error("Game error:", e.error || e.message); }); })(); 
 </script>
+  <div id="error-screen" style="position:fixed; top:0; left:0; background:black; color:red; padding:20px; z-index:999999; word-wrap: break-word;"></div>
+<script>
+  window.addEventListener("error", function(e){ document.getElementById("error-screen").innerText += "Error: " + (e.message || e.error) + "\n\n"; });
+  window.addEventListener("unhandledrejection", function(e){ document.getElementById("error-screen").innerText += "Promise Error: " + (e.reason) + "\n\n"; });
+</script>
+<div id="error-screen" style="position:fixed; top:0; left:0; background:black; color:red; padding:20px; z-index:999999; word-wrap: break-word;"></div>
+<script>
+  window.addEventListener("error", function(e){ document.getElementById("error-screen").innerText += "Error: " + (e.message || e.error) + "\n\n"; });
+  window.addEventListener("unhandledrejection", function(e){ document.getElementById("error-screen").innerText += "Promise Error: " + (e.reason) + "\n\n"; });
+</script>
 </body>
 </html>
