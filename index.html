@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ritik's Game V16 • Live Cloud</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#07070b] text-white font-sans min-h-screen flex items-center justify-center p-4">
+
+  <div id="root" class="w-full max-w-md p-6 bg-[#1a1a22] rounded-3xl border border-white/10 text-center shadow-2xl">
+    <div class="text-4xl mb-3">🎮</div>
+    <h1 class="text-2xl font-bold text-amber-400">Ritik's Game V16</h1>
+    <p id="status" class="text-xs text-white/50 mt-2">Connecting to Firebase Cloud...</p>
+    
+    <div id="game-box" class="mt-6 hidden">
+      <p class="text-sm font-semibold mb-4">Welcome, <span id="username-display" class="text-amber-300"></span>!</p>
+      <div class="p-4 bg-white/5 rounded-2xl mb-4 flex justify-between items-center">
+        <span>💰 Coins: <strong id="coin-count" class="text-amber-400">0</strong></span>
+        <button onclick="addCoins()" class="px-3 py-1 bg-amber-400 text-black font-bold rounded-full text-xs">+100 Coins</button>
+      </div>
+      <button onclick="logout()" class="w-full py-2 bg-red-500/20 text-red-300 rounded-full text-sm font-bold">Logout</button>
+    </div>
+
+    <div id="login-box" class="mt-6 space-y-3">
+      <input type="text" id="username" placeholder="Enter Username" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-full text-sm outline-none focus:border-amber-400 text-center">
+      <button onclick="login()" class="w-full py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-black font-bold rounded-full text-sm shadow-lg">Start Playing 🚀</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAhenr2iW8Kxz-hAx883yWhTcpzgSMy7VU",
+      authDomain: "ritiks-game.firebaseapp.com",
+      projectId: "ritiks-game",
+      storageBucket: "ritiks-game.firebasestorage.app",
+      messagingSenderId: "173134442510",
+      appId: "1:173134442510:web:2020e5b2cc97d3036ccc5f",
+      measurementId: "G-21H9HS3X9J"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    window.db = db;
+
+    document.getElementById("status").innerText = "🔥 Cloud Database Connected Successfully!";
+
+    let currentUser = localStorage.getItem("ritik_current_user");
+    if(currentUser) {
+      showGame(currentUser);
+    }
+
+    window.login = async function() {
+      let uname = document.getElementById("username").value.trim();
+      if(!uname) return alert("Please enter a username!");
+      
+      let userRef = doc(db, "users", uname);
+      let snap = await getDoc(userRef);
+
+      if(!snap.exists()) {
+        await setDoc(userRef, { username: uname, coins: 100, level: 1, blocked: false });
+      }
+
+      localStorage.setItem("ritik_current_user", uname);
+      showGame(uname);
+    }
+
+    function showGame(uname) {
+      document.getElementById("login-box").classList.add("hidden");
+      document.getElementById("game-box").classList.remove("hidden");
+      document.getElementById("username-display").innerText = uname;
+
+      onSnapshot(doc(db, "users", uname), (docSnap) => {
+        if(docSnap.exists()) {
+          let data = docSnap.data();
+          if(data.blocked) {
+            alert("Your account has been blocked by Admin!");
+            logout();
+            return;
+          }
+          document.getElementById("coin-count").innerText = data.coins || 0;
+        }
+      });
+    }
+
+    window.addCoins = async function() {
+      let uname = localStorage.getItem("ritik_current_user");
+      if(!uname) return;
+      let userRef = doc(db, "users", uname);
+      let snap = await getDoc(userRef);
+      if(snap.exists()) {
+        let currentCoins = snap.data().coins || 0;
+        await setDoc(userRef, { coins: currentCoins + 100 }, { merge: true });
+      }
+    }
+
+    window.logout = function() {
+      localStorage.removeItem("ritik_current_user");
+      location.reload();
+    }
+  </script>
+</body>
+</html>
